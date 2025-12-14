@@ -3,4 +3,11 @@ project(AAANetSim)
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_executable(AAANetSim main.cpp)
+include_directories(include)
+
+add_executable(AAANetSim
+        main.cpp
+        src/package.cpp
+        include/types.hpp
+        include/package.hpp
+)
