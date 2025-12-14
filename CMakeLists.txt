@@ -8,4 +8,6 @@ include_directories(include)
 add_executable(AAANetSim
         main.cpp
         src/package.cpp
+        include/types.hpp
+        include/package.hpp
 )
