@@ -7,13 +7,9 @@
 
 #include <functional>  //pozwala traktować funkcje jak zmienne
 
-//nr identyfikacyjny
-using ElementID = int;
-//czas symulacji, która tura
-using Time = int;
-//długość trwania procesu
-using TimeOffset = int;
-//generator losowości
-using ProbabilityGenerator = std::function<double()>;
+using ElementID = int; //nr identyfikacyjny
+using Time = int; //czas symulacji, która tura
+using TimeOffset = int; //długość trwania procesu
+using ProbabilityGenerator = std::function<double()>; //generator losowości
 
 #endif //AAANETSIM_TYPES_H
