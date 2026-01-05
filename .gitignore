@@ -1,0 +1,11 @@
+# Folder kompilacji
+build/
+cmake-build-debug/
+
+# Ustawienia edytorów
+.vscode/
+.idea/
+
+# Pliki wykonywalne
+*.exe
+*.dll
