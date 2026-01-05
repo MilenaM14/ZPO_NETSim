@@ -1,6 +1,11 @@
 //
-// Created by milen on 14.12.2025.
+// Created by jowit on 05.01.2026.
 //
+#include <package.hpp>
+#ifndef STORAGE_HPP
+#define STORAGE_HPP
+
+#endif //STORAGE_HPP
 #include <iostream>
 class IPackageStockPile
 {
@@ -14,4 +19,4 @@ public:
     virtual const_iterator end()  = 0;
     virtual const_iterator cbegin() const = 0;
     virtual const_iterator cend() const = 0;
-}
+};

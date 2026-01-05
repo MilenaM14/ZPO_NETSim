@@ -1,0 +1,3 @@
+C:/Users/jowit/Desktop/stdia/netsim/ZPO_NETSim/cmake-build-debug/CMakeFiles/AAANetSim.dir
+C:/Users/jowit/Desktop/stdia/netsim/ZPO_NETSim/cmake-build-debug/CMakeFiles/edit_cache.dir
+C:/Users/jowit/Desktop/stdia/netsim/ZPO_NETSim/cmake-build-debug/CMakeFiles/rebuild_cache.dir

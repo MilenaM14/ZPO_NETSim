@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 4.0)
+cmake_minimum_required(VERSION 3.30.5)
 project(AAANetSim)
 
 set(CMAKE_CXX_STANDARD 20)
@@ -10,4 +10,5 @@ add_executable(AAANetSim
         src/package.cpp
         include/types.hpp
         include/package.hpp
+        include/storage.hpp
 )
