@@ -10,4 +10,6 @@ add_executable(AAANetSim
         src/package.cpp
         include/types.hpp
         include/package.hpp
+        include/storage_types.hpp
+        src/storage_types.cpp
 )
