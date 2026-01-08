@@ -14,4 +14,6 @@ add_executable(AAANetSim
         src/storage_types.cpp
         include/nodes_preferences.hpp
         src/nodes_preferences.cpp
+        include/helpers.hpp
+        src/helpers.cpp
 )
