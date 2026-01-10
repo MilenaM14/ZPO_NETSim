@@ -16,4 +16,6 @@ add_executable(AAANetSim
         src/nodes_preferences.cpp
         include/helpers.hpp
         src/helpers.cpp
+        include/factory.hpp
+        src/factory.cpp
 )
