@@ -11,6 +11,7 @@
 #include "types.hpp"
 #include <map>
 #include <optional>
+#include <memory>
 
 enum class ReceiverType {
     WORKER,
@@ -60,6 +61,8 @@ private:
 
 class PackageSender {
 public:
+    PackageSender() = default;
+
     ReceiverPreferences receiver_preferences_;
 
     PackageSender(PackageSender&&) = default;  // konstruktor przenoszący (domyślny)
@@ -67,11 +70,58 @@ public:
     void send_package();
     const std::optional<Package>& get_sending_buffer() const { return buffer_; };
 
-private:
+protected:
     void push_package(Package&& p) {
         buffer_ = std::move(p);
     }
     std::optional<Package> buffer_ = std::nullopt;
 };
 
+class Ramp : public PackageSender {
+public:
+
+    Ramp(ElementID id, TimeOffset di); // Konstruktor
+
+    void deliver_goods(Time t);
+
+    TimeOffset get_delivery_interval() const;
+    ElementID get_id() const;
+
+private:
+    ElementID id_;
+    TimeOffset delivery_interval_;
+};
+
+class Worker : public PackageSender {
+public:
+    Worker(ElementID id, TimeOffset pd, std::unique_ptr<IPackageQueue> q);
+
+    void do_work(Time t);
+
+    TimeOffset get_processing_duration() const {return processing_duration_;};
+    Time get_package_processing_start_time() const {return start_processing_time_;};
+
+private:
+    ElementID id_;
+    TimeOffset processing_duration_;
+    std::unique_ptr<IPackageQueue> package_queue_;
+    Time start_processing_time_;
+
+};
+
+class Storehouse {
+public:
+    Storehouse(ElementID id,
+              std::unique_ptr<IPackageStockpile> d = std::make_unique<PackageQueue>(PackageQueueType::FIFO)) : id_(id),
+                                                                                                               d_(std::move(
+                                                                                                                       d)) {}
+    ElementID get_id() const {return id_;};
+
+    void receive_package(Package&& package);
+
+private:
+    ElementID id_;
+
+    std::unique_ptr<IPackageStockpile> d_;
+};
 #endif //NODES_PREFERENCES_HPP
