@@ -1,71 +1,85 @@
 //
 // Created by jowit on 08.01.2026.
 //
+
 #include "nodes.hpp"
 
 ReceiverPreferences::ReceiverPreferences(ProbabilityGenerator pg)
     : pg_(pg) {
-} // Zapis generatora do pola klasy
+}
 
 void ReceiverPreferences::add_receiver(IPackageReceiver* r)
 {
+    //dodajemy odbiorcę z początkową wartością
     preferences_[r] = 0.0;
-    std::size_t n = preferences_.size(); //ilość odbiorców
+
+    //przeliczamy prawdopodobieństwa dla wszystkich (rozkład równomierny)
+    if (preferences_.empty()) return;
+    double new_probability = 1.0 / preferences_.size();
+
     for (auto& receiver : preferences_) {
-        receiver.second = 1.0/n; //przypisnie wartosci
+        receiver.second = new_probability;
     }
 }
 
 void ReceiverPreferences::remove_receiver(IPackageReceiver* r) {
-    preferences_.erase(r); //usuwa odbiorce
-    if (preferences_.empty()) return;
+    preferences_.erase(r);
 
-    double p = 1.0 / preferences_.size(); //nowa wartosc po usunieciu odbiorcy
+    //przeliczamy prawdopodobieństwa po usunięciu
+    if (preferences_.empty()) return;
+    double new_probability = 1.0 / preferences_.size();
 
     for (auto& receiver : preferences_) {
-        receiver.second = p; // przypisanie nowych wartosci
+        receiver.second = new_probability;
     }
 }
 
 IPackageReceiver* ReceiverPreferences::choose_receiver() {
-    if (preferences_.empty()) return nullptr; //żeby nie iterowac po pustej mapie
+    if (preferences_.empty()) return nullptr;
 
-    auto p = pg_(); // losuje liczbę z [0,1]
+    double p = pg_(); //losuje liczbę z zakresu [0, 1]
     double cumulative = 0.0;
 
-    for (auto& receiver : preferences_) {
+    for (const auto& receiver : preferences_) {
         cumulative += receiver.second;
         if (p <= cumulative) {
-            return receiver.first; // wybrany odbiorca
+            return receiver.first;
         }
     }
 
+    //zabezpieczenie na wypadek błędów zaokrągleń double
     return preferences_.rbegin()->first;
 }
+
 void PackageSender::send_package()
 {
+    //jeśli bufor jest pusty, nie ma co wysyłać
     if (!buffer_.has_value()) {
-        return; //sprawdzanie czy bufor ma wartosc
-    }
-
-    IPackageReceiver* receiver = receiver_preferences_.choose_receiver(); //wybor odbiorcy
-    if (receiver == nullptr) { //sprawdza czy odbiorca istnieje
         return;
     }
 
-    receiver->receive_package(std::move(*buffer_)); //przypisuje paczke
-    buffer_.reset(); //resetuje bufor
+    IPackageReceiver* receiver = receiver_preferences_.choose_receiver();
+
+    if (receiver) {
+        receiver->receive_package(std::move(*buffer_));
+        buffer_.reset(); // Opróżnij bufor po wysłaniu
+    }
 }
 
 Ramp::Ramp(ElementID id, TimeOffset di)
     : id_(id),
-      delivery_interval_(di){} //konstruktor
+      delivery_interval_(di)
+{}
 
 void Ramp::deliver_goods(Time t)
 {
-    if (t%delivery_interval_==0.0)
+    //generowanie paczki co określony interwał
+    if ((t-1) % delivery_interval_ == 0)
     {
-        push_package(Package());
+        //jeśli bufor nadawczy jest wolny, utwórz nową paczkę
+        if (!buffer_.has_value()) {
+            push_package(Package());
+        }
     }
 }
 
@@ -79,25 +93,31 @@ ElementID Ramp::get_id() const
     return id_;
 }
 
-
 Worker::Worker(ElementID id, TimeOffset pd, std::unique_ptr<IPackageQueue> q)
-    :PackageSender(), id_(id), processing_duration_(pd), package_queue_(std::move(q)), start_processing_time_(0)
-{}// konstruktor
-
+    : PackageSender(),
+      id_(id),
+      processing_duration_(pd),
+      package_queue_(std::move(q)),
+      start_processing_time_(0)
+{}
 
 void Worker::do_work(Time t)
 {
-    if (!buffer_.has_value() && !package_queue_->empty()){ //sprawdzenie czy jets paczka
-        start_processing_time_ = t; //zapamiętanie czasu
+    //jeśli bufor (miejsce pracy) jest pusty, a mamy coś w kolejce -> pobierz do pracy
+    if (!buffer_.has_value() && !package_queue_->empty()) {
         buffer_.emplace(package_queue_->pop());
+        start_processing_time_ = t;
     }
-    if (buffer_.has_value() && t - start_processing_time_ >= processing_duration_) {
-        push_package(std::move(*buffer_));
-        buffer_.reset();
-    }// sprawdza czy czas minął i przekazuje paczke do odbiorcy
 }
 
+void Worker::receive_package(Package&& p) {
+    package_queue_->push(std::move(p));
+}
 
+Storehouse::Storehouse(ElementID id, std::unique_ptr<IPackageStockpile> d)
+    : id_(id),
+      d_(std::move(d))
+{}
 
 void Storehouse::receive_package(Package&& p) {
     d_->push(std::move(p));
