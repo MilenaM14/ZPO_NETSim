@@ -6,7 +6,7 @@
 #define AAANETSIM_FACTORY_HPP
 
 #include "types.hpp"
-#include "nodes_preferences.hpp"
+#include "nodes.hpp"
 #include <list>
 #include <algorithm>
 #include <stdexcept>
@@ -66,4 +66,5 @@ class Factory
 {
 
 };
+
 #endif //AAANETSIM_FACTORY_HPP

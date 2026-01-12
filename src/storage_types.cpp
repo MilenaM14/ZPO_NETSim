@@ -42,18 +42,18 @@ IPackageStockpile::const_iterator PackageQueue::cend() const
 
 Package PackageQueue::pop() // FIFO/LIFO
 {
-    Package p;
 
     if (type_ == PackageQueueType::FIFO)
     {
-        p = std::move(queue_.front());
+        Package p(std::move(queue_.front()));
         queue_.pop_front();
+        return p;
     } else
     {
-        p = std::move(queue_.back());
+        Package p(std::move(queue_.back()));
         queue_.pop_back();
+        return p;
     }
-    return p;
 }
 
 PackageQueueType PackageQueue::get_queue_type() const
