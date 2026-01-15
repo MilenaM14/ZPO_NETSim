@@ -95,7 +95,7 @@ public:
     IPackageStockpile::const_iterator cend() const override { return package_queue_->cend(); }
     IPackageStockpile::const_iterator begin() const override { return package_queue_->begin(); }
     IPackageStockpile::const_iterator end() const override { return package_queue_->end(); }
-
+    IPackageQueue* get_queue() const { return package_queue_.get(); }
     ReceiverType get_receiver_type() const override {
         return ReceiverType::WORKER;
     }
@@ -115,6 +115,8 @@ private:
     std::unique_ptr<IPackageQueue> package_queue_;
     Time start_processing_time_;
     std::optional<Package> processing_buffer_;
+    std::optional<Package> buffer_ = std::nullopt;
+    std::optional<Package> processing_buffer_; //bufor na aktualnie przetwarzaną paczke
 };
 
 class Storehouse : public IPackageReceiver {

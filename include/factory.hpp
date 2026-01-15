@@ -111,7 +111,18 @@ private:
     }
 };
 
+
 // Funkcje globalne IO
+enum class ElementType {
+    RAMP,
+    WORKER,
+    STOREHOUSE,
+    LINK
+};
+
+struct ParsedLineData {ElementType type; std::map<std::string, std::string> parameters;};
+
+ParsedLineData parse_line(const std::string& line); //sprawdza co to jest np. WORKER, wyciąga pary klucz=wartość
 
 Factory load_factory_structure(std::istream& is);
 void save_factory_structure(const Factory& factory, std::ostream& os);
