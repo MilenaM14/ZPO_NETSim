@@ -94,7 +94,6 @@ public:
     // Metody z IPackageReceiver
     void receive_package(Package&& p) override;
     ElementID get_id() const override { return id_; }
-    // USUNIĘTO: get_receiver_type
 
     IPackageStockpile::const_iterator cbegin() const override { return package_queue_->cbegin(); }
     IPackageStockpile::const_iterator cend() const override { return package_queue_->cend(); }
@@ -105,12 +104,23 @@ public:
         return ReceiverType::WORKER;
     }
 
+    //metody do raportow
+    const std::optional<Package>& get_processing_buffer() const
+    {
+        return processing_buffer_;
+    } //zwraca bufor przetwarzania
+
+    IPackageQueue* get_queue() const {
+        return package_queue_.get();
+    } //zwraca wskaznik do kolejki
+
 private:
     ElementID id_;
     TimeOffset processing_duration_;
     std::unique_ptr<IPackageQueue> package_queue_;
     Time start_processing_time_;
     std::optional<Package> buffer_ = std::nullopt;
+    std::optional<Package> processing_buffer_; //bufor na aktualnie przetwarzaną paczke
 };
 
 class Storehouse : public IPackageReceiver {
