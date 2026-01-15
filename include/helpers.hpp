@@ -1,18 +1,19 @@
-//
-// Created by milen on 8.01.2026.
-//
+#ifndef NETSIM_HELPERS_HPP
+#define NETSIM_HELPERS_HPP
 
-#ifndef AAANETSIM_HELPERS_HPP
-#define AAANETSIM_HELPERS_HPP
-
+#include <functional>
 #include <random>
 #include "types.hpp"
 
-//globarny generator
+// Deklarujemy, że te zmienne istnieją, ale są zdefiniowane w pliku .cpp
 extern std::random_device rd;
 extern std::mt19937 rng;
 
-extern double default_probability_generator(); //domyslna funkcja losujaca
-extern  ProbabilityGenerator probability_generator; //obiekt funkcyjny
+// To jest funkcja, której szuka test
+extern double default_probability_generator();
 
-#endif //AAANETSIM_HELPERS_HPP
+// To jest zmienna globalna, którą test podmienia
+// Słowo 'extern' jest tu KLUCZOWE
+extern std::function<double()> probability_generator;
+
+#endif //NETSIM_HELPERS_HPP

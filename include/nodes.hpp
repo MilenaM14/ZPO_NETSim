@@ -1,7 +1,3 @@
-//
-// Created by jowit on 08.01.2026.
-//
-
 #ifndef NETSIM_NODES_HPP
 #define NETSIM_NODES_HPP
 

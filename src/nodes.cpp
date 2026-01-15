@@ -1,8 +1,3 @@
-//
-// Created by jowit on 08.01.2026.
-//
-
-// nodes.cpp
 #include "nodes.hpp"
 #include <stdexcept>
 
