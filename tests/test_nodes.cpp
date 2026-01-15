@@ -96,23 +96,36 @@ class ReceiverPreferencesChoosingTest : public GlobalFunctionsFixture {
 };
 
 TEST_F(ReceiverPreferencesChoosingTest, ChooseReceiver) {
-    // Upewnij się, że odbiorcy wybierani są z właściwym prawdopodobieństwem.
-
-    EXPECT_CALL(global_functions_mock, generate_canonical()).WillOnce(Return(0.3)).WillOnce(Return(0.7));
-
-    ReceiverPreferences rp;
+    // Utwórz ReceiverPreferences z customowym generatorem, który używa mocka
+    ReceiverPreferences rp([this]() -> double {
+        return global_functions_mock.generate_canonical();
+    });
 
     MockReceiver r1, r2;
     rp.add_receiver(&r1);
     rp.add_receiver(&r2);
 
-    if (rp.begin()->first == &r1) {
-        EXPECT_EQ(rp.choose_receiver(), &r1);
-        EXPECT_EQ(rp.choose_receiver(), &r2);
-    } else {
-        EXPECT_EQ(rp.choose_receiver(), &r2);
-        EXPECT_EQ(rp.choose_receiver(), &r1);
-    }
+    // Sprawdź prawdopodobieństwa
+    EXPECT_EQ(rp.get_preferences().at(&r1), 0.5);
+    EXPECT_EQ(rp.get_preferences().at(&r2), 0.5);
+
+    // Konfiguracja mocka - oczekujemy dwóch wywołań
+    EXPECT_CALL(global_functions_mock, generate_canonical())
+        .Times(2)
+        .WillOnce(Return(0.3))
+        .WillOnce(Return(0.7));
+
+    // Pierwsze wywołanie z prawdopodobieństwem 0.3
+    // cumulative: r1=0.5 -> 0.3 <= 0.5 -> wybiera r1
+    auto* result1 = rp.choose_receiver();
+
+    // Drugie wywołanie z prawdopodobieństwem 0.7
+    // cumulative: r1=0.5, r2=1.0 -> 0.7 <= 1.0 -> wybiera r2
+    auto* result2 = rp.choose_receiver();
+
+    // Sprawdź wyniki
+    EXPECT_EQ(result1, &r1);
+    EXPECT_EQ(result2, &r2);
 }
 
 // -----------------

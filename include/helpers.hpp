@@ -1,18 +1,19 @@
-//
-// Created by milen on 8.01.2026.
-//
+#ifndef NETSIM_HELPERS_HPP
+#define NETSIM_HELPERS_HPP
 
-#ifndef AAANETSIM_HELPERS_HPP
-#define AAANETSIM_HELPERS_HPP
-
+#include <functional>
 #include <random>
+
 #include "types.hpp"
 
-//globarny generator
+// Definicja typu generatora prawdopodobieństwa
 extern std::random_device rd;
 extern std::mt19937 rng;
 
-extern double default_probability_generator(); //domyslna funkcja losujaca
-extern  ProbabilityGenerator probability_generator; //obiekt funkcyjny
+extern double default_probability_generator();
 
-#endif //AAANETSIM_HELPERS_HPP
+// Kluczowe: probability_generator musi być obiektem std::function,
+// aby testy mogły go podmienić na mocka.
+extern std::function<double()> probability_generator;
+
+#endif // NETSIM_HELPERS_HPP
