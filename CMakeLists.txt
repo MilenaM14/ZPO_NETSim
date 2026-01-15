@@ -14,8 +14,7 @@ endif ()
 
 include_directories(src include)
 
-# --- 1. DEFINICJA LOGIKI BIZNESOWEJ (BEZ TESTÓW I BEZ MAIN.CPP) ---
-# To jest kluczowe. Tutaj tylko pliki .cpp z folderu src/
+# --- 1. DEFINICJA LOGIKI BIZNESOWEJ ---
 set(SOURCE_FILES
         src/package.cpp
         src/storage_types.cpp
@@ -27,9 +26,13 @@ set(SOURCE_FILES
 )
 
 # --- 2. CEL: GŁÓWNA APLIKACJA ---
-# Tworzy AAANetSim.exe z main.cpp + logika biznesowa
 add_executable(${PROJECT_NAME} main.cpp ${SOURCE_FILES})
 
 # --- 3. KONFIGURACJA TESTÓW ---
-# Wczytuje drugi plik (GTestSetup.cmake), który zbuduje AAANetSim_Tests
 include(GTestSetup.cmake)
+
+# ===================================================================
+# [TUTAJ DODAJ TĘ LINIJKĘ]
+# To włączy kod wewnątrz #ifdef WITH_PROBABILITY_GENERATOR w testach
+# ===================================================================
+target_compile_definitions(AAANetSim_Tests PRIVATE WITH_PROBABILITY_GENERATOR)
