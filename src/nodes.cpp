@@ -2,111 +2,93 @@
 // Created by jowit on 08.01.2026.
 //
 
+// nodes.cpp
 #include "nodes.hpp"
+#include <stdexcept>
+
 
 ReceiverPreferences::ReceiverPreferences(ProbabilityGenerator pg)
-    : pg_(pg) {
-}
+    : pg_(pg) {}
 
-void ReceiverPreferences::add_receiver(IPackageReceiver* r)
-{
-    //dodajemy odbiorcę z początkową wartością
-    preferences_[r] = 0.0;
-
-    //przeliczamy prawdopodobieństwa dla wszystkich (rozkład równomierny)
-    if (preferences_.empty()) return;
-    double new_probability = 1.0 / preferences_.size();
-
-    for (auto& receiver : preferences_) {
-        receiver.second = new_probability;
+void ReceiverPreferences::add_receiver(IPackageReceiver* r) {
+    preferences_[r] = 1.0;
+    // Po dodaniu nowego odbiorcy, resetujemy wagi (1/n)
+    double new_prob = 1.0 / preferences_.size();
+    for (auto& pair : preferences_) {
+        pair.second = new_prob;
     }
 }
 
 void ReceiverPreferences::remove_receiver(IPackageReceiver* r) {
-    preferences_.erase(r);
-
-    //przeliczamy prawdopodobieństwa po usunięciu
-    if (preferences_.empty()) return;
-    double new_probability = 1.0 / preferences_.size();
-
-    for (auto& receiver : preferences_) {
-        receiver.second = new_probability;
+    auto it = preferences_.find(r);
+    if (it != preferences_.end()) {
+        preferences_.erase(it);
+        // Przelicz wagi po usunięciu
+        if (!preferences_.empty()) {
+            double new_prob = 1.0 / preferences_.size();
+            for (auto& pair : preferences_) {
+                pair.second = new_prob;
+            }
+        }
     }
 }
 
 IPackageReceiver* ReceiverPreferences::choose_receiver() {
-    if (preferences_.empty()) return nullptr;
-
-    double p = pg_(); //losuje liczbę z zakresu [0, 1]
+    double probability = pg_();
     double cumulative = 0.0;
-
-    for (const auto& receiver : preferences_) {
-        cumulative += receiver.second;
-        if (p <= cumulative) {
-            return receiver.first;
+    for (const auto& pair : preferences_) {
+        cumulative += pair.second;
+        if (probability <= cumulative) {
+            return pair.first;
         }
     }
-
-    //zabezpieczenie na wypadek błędów zaokrągleń double
-    return preferences_.rbegin()->first;
+    if (!preferences_.empty()) return preferences_.begin()->first;
+    return nullptr;
 }
 
-void PackageSender::send_package()
-{
-    //jeśli bufor jest pusty, nie ma co wysyłać
-    if (!buffer_.has_value()) {
-        return;
-    }
-
-    IPackageReceiver* receiver = receiver_preferences_.choose_receiver();
-
-    if (receiver) {
-        receiver->receive_package(std::move(*buffer_));
-        buffer_.reset(); // Opróżnij bufor po wysłaniu
-    }
-}
-
-Ramp::Ramp(ElementID id, TimeOffset di)
-    : id_(id),
-      delivery_interval_(di)
-{}
-
-void Ramp::deliver_goods(Time t)
-{
-    //generowanie paczki co określony interwał
-    if ((t-1) % delivery_interval_ == 0)
-    {
-        //jeśli bufor nadawczy jest wolny, utwórz nową paczkę
-        if (!buffer_.has_value()) {
-            push_package(Package());
+void PackageSender::send_package() {
+    if (buffer_) {
+        IPackageReceiver* receiver = receiver_preferences_.choose_receiver();
+        if (receiver) {
+            receiver->receive_package(std::move(*buffer_));
+            buffer_.reset();
         }
     }
 }
 
-TimeOffset Ramp::get_delivery_interval() const
-{
+
+Ramp::Ramp(ElementID ID, TimeOffset di)
+    : ID_(ID), delivery_interval_(di) {}
+
+void Ramp::deliver_goods(Time t) {
+    if ((t - 1) % delivery_interval_ == 0) {
+        Package p;
+        push_package(std::move(p));
+    }
+}
+
+TimeOffset Ramp::get_delivery_interval() const {
     return delivery_interval_;
 }
 
-ElementID Ramp::get_id() const
-{
-    return id_;
+ElementID Ramp::get_id() const {
+    return ID_;
 }
 
-Worker::Worker(ElementID id, TimeOffset pd, std::unique_ptr<IPackageQueue> q)
-    : PackageSender(),
-      id_(id),
-      processing_duration_(pd),
-      package_queue_(std::move(q)),
-      start_processing_time_(0)
-{}
+Worker::Worker(ElementID ID, TimeOffset pd, std::unique_ptr<IPackageQueue> q)
+    : ID_(ID), processing_duration_(pd), package_queue_(std::move(q)), start_processing_time_(0) {}
 
-void Worker::do_work(Time t)
-{
-    //jeśli bufor (miejsce pracy) jest pusty, a mamy coś w kolejce -> pobierz do pracy
-    if (!buffer_.has_value() && !package_queue_->empty()) {
-        buffer_.emplace(package_queue_->pop());
+void Worker::do_work(Time t) {
+    if (!processing_buffer_ && !package_queue_->empty()) {
+        processing_buffer_ = package_queue_->pop();
         start_processing_time_ = t;
+    }
+
+    if (processing_buffer_) {
+        if (t - start_processing_time_ + 1 >= processing_duration_) {
+            push_package(std::move(*processing_buffer_));
+            processing_buffer_.reset();
+        }
     }
 }
 
@@ -114,11 +96,9 @@ void Worker::receive_package(Package&& p) {
     package_queue_->push(std::move(p));
 }
 
-Storehouse::Storehouse(ElementID id, std::unique_ptr<IPackageStockpile> d)
-    : id_(id),
-      d_(std::move(d))
-{}
+Storehouse::Storehouse(ElementID ID, std::unique_ptr<IPackageStockpile> d)
+    : ID_(ID), d_(std::move(d)) {}
 
-void Storehouse::receive_package(Package&& p) {
-    d_->push(std::move(p));
+void Storehouse::receive_package(Package&& package) {
+    d_->push(std::move(package));
 }
