@@ -21,7 +21,7 @@ add_executable(AAANetSim
 )]]
 
 cmake_minimum_required(VERSION 4.0)
-project(NetSim)
+project(AAANetSim)
 
 set(CMAKE_CXX_STANDARD 20)
 
@@ -46,7 +46,8 @@ set(SOURCE_FILES
         include/reports.hpp
         include/simulation.hpp
         src/reports.cpp
-        src/simulation.cpp)
+        src/simulation.cpp
+        tests/NetSimBasic_Tests.cpp)
 
 add_executable(${PROJECT_NAME} main.cpp ${SOURCE_FILES})
 
