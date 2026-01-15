@@ -1,25 +1,3 @@
-#[[cmake_minimum_required(VERSION 4.0)
-project(AAANetSim)
-
-set(CMAKE_CXX_STANDARD 20)
-
-include_directories(include)
-
-add_executable(AAANetSim
-        main.cpp
-        src/package.cpp
-        include/types.hpp
-        include/package.hpp
-        include/storage_types.hpp
-        src/storage_types.cpp
-        include/nodes.hpp
-        src/nodes.cpp
-        include/helpers.hpp
-        src/helpers.cpp
-        include/factory.hpp
-        src/factory.cpp
-)]]
-
 cmake_minimum_required(VERSION 4.0)
 project(AAANetSim)
 
@@ -27,33 +5,34 @@ set(CMAKE_CXX_STANDARD 20)
 
 add_compile_options(-Wall)
 
-# Set default compile flags for GCC
+# Flagi kompilatora
 set(GOOD_COMPILERS Clang GNU)
 if (CMAKE_CXX_COMPILER_ID IN_LIST GOOD_COMPILERS)
-    message(STATUS "GCC detected, adding compile flags")
+    message(STATUS "GCC/Clang detected, adding compile flags")
     add_compile_options(-Wextra -Werror -Wpedantic -pedantic-errors)
 endif ()
 
-set(SOURCE_DIR ./src)
+include_directories(src include)
+
+# --- 1. DEFINICJA LOGIKI BIZNESOWEJ ---
 set(SOURCE_FILES
-        ${SOURCE_DIR}/package.cpp
-        ${SOURCE_DIR}/storage_types.cpp
-        ${SOURCE_DIR}/helpers.cpp
-        ${SOURCE_DIR}/nodes.cpp
-        ${SOURCE_DIR}/factory.cpp
-        ${SOURCE_DIR}/reports.cpp
-        ${SOURCE_DIR}/simulation.cpp
-        include/reports.hpp
-        include/simulation.hpp
+        src/package.cpp
+        src/storage_types.cpp
+        src/helpers.cpp
+        src/nodes.cpp
+        src/factory.cpp
         src/reports.cpp
         src/simulation.cpp
-        tests/NetSimBasic_Tests.cpp)
-
-add_executable(${PROJECT_NAME} main.cpp ${SOURCE_FILES})
-
-include_directories(
-        src
-        include
 )
 
+# --- 2. CEL: GŁÓWNA APLIKACJA ---
+add_executable(${PROJECT_NAME} main.cpp ${SOURCE_FILES})
+
+# --- 3. KONFIGURACJA TESTÓW ---
 include(GTestSetup.cmake)
+
+# ===================================================================
+# [TUTAJ DODAJ TĘ LINIJKĘ]
+# To włączy kod wewnątrz #ifdef WITH_PROBABILITY_GENERATOR w testach
+# ===================================================================
+target_compile_definitions(AAANetSim_Tests PRIVATE WITH_PROBABILITY_GENERATOR)

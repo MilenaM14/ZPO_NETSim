@@ -1,17 +1,30 @@
-//
-// Created by milen on 15.01.2026.
-//
-
-#ifndef AAANETSIM_REPORTS_HPP
-#define AAANETSIM_REPORTS_HPP
+#ifndef NETSIM_REPORTS_HPP
+#define NETSIM_REPORTS_HPP
 
 #include "factory.hpp"
+#include "types.hpp"
 #include <iostream>
 
-//generuje raport o strukturze sieci
-void generate_structure_report(const Factory& f, std::ostream& os);
+// --- Interfejsy raportów ---
 
-//generuje raport o stanie symulacji w danej turze
-void generate_simulation_turn_report(const Factory& f, std::ostream& os, Time t);
+class SpecificTurnReport {
+public:
+    virtual void add_worker_entry(const Worker& worker) = 0;
+    virtual void add_storehouse_entry(const Storehouse& storehouse) = 0;
+    virtual ~SpecificTurnReport() = default;
+};
 
-#endif //AAANETSIM_REPORTS_HPP
+class IntervalReport {
+public:
+    virtual void add_turn_report(const SpecificTurnReport& report) = 0;
+    virtual ~IntervalReport() = default;
+};
+
+// --- Funkcje generujące raporty ---
+
+void generate_structure_report(const Factory& factory, std::ostream& os);
+
+// POPRAWKA: Nazwa funkcji zgodna z oczekiwaniami testów
+void generate_simulation_turn_report(const Factory& factory, std::ostream& os, Time t);
+
+#endif // NETSIM_REPORTS_HPP

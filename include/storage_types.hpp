@@ -41,6 +41,25 @@ public:
     virtual PackageQueueType get_queue_type() const = 0;
 };
 
+// --- TO JEST KLASA, KTÓREJ BRAKOWAŁO ---
+class PackageStockpile : public IPackageStockpile
+{
+public:
+    // Implementujemy metody interfejsu
+    void push(Package&& package) override;
+    bool empty() const override;
+    size_type size() const override;
+
+    const_iterator begin() const override;
+    const_iterator end() const override;
+    const_iterator cbegin() const override;
+    const_iterator cend() const override;
+
+private:
+    std::list<Package> stock_;
+};
+// ----------------------------------------
+
 class PackageQueue : public IPackageQueue
 {
 public:

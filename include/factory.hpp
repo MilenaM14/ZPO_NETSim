@@ -2,8 +2,8 @@
 // Created by milen on 10.01.2026.
 //
 
-#ifndef AANETSIM_FACTORY_HPP
-#define AANETSIM_FACTORY_HPP
+#ifndef NETSIM_FACTORY_HPP
+#define NETSIM_FACTORY_HPP
 
 #include "types.hpp"
 #include "nodes.hpp"
@@ -11,6 +11,8 @@
 #include <algorithm>
 #include <stdexcept>
 #include <vector>
+#include <iostream>
+#include <sstream>
 
 template <typename Node>
 class NodeCollection {
@@ -57,6 +59,7 @@ private:
 
 class Factory {
 public:
+    // Ramps
     void add_ramp(Ramp&& ramp);
     void remove_ramp(ElementID ID);
     NodeCollection<Ramp>::iterator find_ramp_by_id(ElementID ID);
@@ -64,6 +67,7 @@ public:
     NodeCollection<Ramp>::const_iterator ramp_cbegin() const;
     NodeCollection<Ramp>::const_iterator ramp_cend() const;
 
+    // Workers
     void add_worker(Worker&& worker);
     void remove_worker(ElementID ID);
     NodeCollection<Worker>::iterator find_worker_by_id(ElementID ID);
@@ -71,6 +75,7 @@ public:
     NodeCollection<Worker>::const_iterator worker_cbegin() const;
     NodeCollection<Worker>::const_iterator worker_cend() const;
 
+    // Storehouses
     void add_storehouse(Storehouse&& storehouse);
     void remove_storehouse(ElementID ID);
     NodeCollection<Storehouse>::iterator find_storehouse_by_id(ElementID ID);
@@ -88,6 +93,7 @@ private:
     NodeCollection<Worker> workers_;
     NodeCollection<Storehouse> storehouses_;
 
+    // Szablon metody pomocniczej
     template <typename Node>
     void remove_receiver(NodeCollection<Node>& collection, ElementID ID) {
         auto it = collection.find_by_id(ID);
@@ -101,11 +107,12 @@ private:
         for (auto& worker : workers_) {
             worker.receiver_preferences_.remove_receiver(receiver_ptr);
         }
-
         collection.remove_by_id(ID);
     }
 };
 
+
+// Funkcje globalne IO
 enum class ElementType {
     RAMP,
     WORKER,
@@ -120,4 +127,4 @@ ParsedLineData parse_line(const std::string& line); //sprawdza co to jest np. WO
 Factory load_factory_structure(std::istream& is);
 void save_factory_structure(const Factory& factory, std::ostream& os);
 
-#endif // AANETSIM_FACTORY_HPP
+#endif // NETSIM_FACTORY_HPP

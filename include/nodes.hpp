@@ -1,9 +1,5 @@
-//
-// Created by jowit on 08.01.2026.
-//
-
-#ifndef NODES_PREFERENCES_HPP
-#define NODES_PREFERENCES_HPP
+#ifndef NETSIM_NODES_HPP
+#define NETSIM_NODES_HPP
 
 #include "helpers.hpp"
 #include "package.hpp"
@@ -13,6 +9,7 @@
 #include <optional>
 #include <memory>
 
+// Typ wyliczeniowy potrzebny dla Factory do rozróżniania węzłów
 enum class ReceiverType {
     WORKER,
     STOREHOUSE
@@ -25,11 +22,10 @@ public:
     virtual IPackageStockpile::const_iterator begin() const = 0;
     virtual IPackageStockpile::const_iterator end() const = 0;
 
-    // USUNIĘTO: virtual ReceiverType get_receiver_type() const = 0;
-
     virtual void receive_package(Package&& p) = 0;
     virtual ElementID get_id() const = 0;
 
+    // Metoda niezbędna do weryfikacji spójności sieci (DFS)
     virtual ReceiverType get_receiver_type() const = 0;
 
     virtual ~IPackageReceiver() = default;
@@ -73,19 +69,19 @@ protected:
 
 class Ramp : public PackageSender {
 public:
-    Ramp(ElementID id, TimeOffset di);
+    Ramp(ElementID ID, TimeOffset di);
     void deliver_goods(Time t);
     TimeOffset get_delivery_interval() const;
     ElementID get_id() const;
 
 private:
-    ElementID id_;
+    ElementID ID_;
     TimeOffset delivery_interval_;
 };
 
 class Worker : public PackageSender, public IPackageReceiver {
 public:
-    Worker(ElementID id, TimeOffset pd, std::unique_ptr<IPackageQueue> q);
+    Worker(ElementID ID, TimeOffset pd, std::unique_ptr<IPackageQueue> q);
 
     void do_work(Time t);
     TimeOffset get_processing_duration() const { return processing_duration_; };
@@ -93,7 +89,7 @@ public:
 
     // Metody z IPackageReceiver
     void receive_package(Package&& p) override;
-    ElementID get_id() const override { return id_; }
+    ElementID get_id() const override { return ID_; }
 
     IPackageStockpile::const_iterator cbegin() const override { return package_queue_->cbegin(); }
     IPackageStockpile::const_iterator cend() const override { return package_queue_->cend(); }
@@ -104,32 +100,31 @@ public:
         return ReceiverType::WORKER;
     }
 
-    //metody do raportow
-    const std::optional<Package>& get_processing_buffer() const
-    {
+    // Metody do raportów i IO
+    const std::optional<Package>& get_processing_buffer() const {
         return processing_buffer_;
-    } //zwraca bufor przetwarzania
+    }
 
     IPackageQueue* get_queue() const {
         return package_queue_.get();
-    } //zwraca wskaznik do kolejki
+    }
 
 private:
-    ElementID id_;
+    ElementID ID_;
     TimeOffset processing_duration_;
     std::unique_ptr<IPackageQueue> package_queue_;
     Time start_processing_time_;
+    std::optional<Package> processing_buffer_;
     std::optional<Package> buffer_ = std::nullopt;
     std::optional<Package> processing_buffer_; //bufor na aktualnie przetwarzaną paczke
 };
 
 class Storehouse : public IPackageReceiver {
 public:
-    Storehouse(ElementID id, std::unique_ptr<IPackageStockpile> d = std::make_unique<PackageQueue>(PackageQueueType::FIFO));
+    Storehouse(ElementID ID, std::unique_ptr<IPackageStockpile> d = std::make_unique<PackageQueue>(PackageQueueType::FIFO));
 
-    ElementID get_id() const override { return id_; };
+    ElementID get_id() const override { return ID_; };
     void receive_package(Package&& package) override;
-    // USUNIĘTO: get_receiver_type
 
     IPackageStockpile::const_iterator cbegin() const override { return d_->cbegin(); }
     IPackageStockpile::const_iterator cend() const override { return d_->cend(); }
@@ -141,8 +136,8 @@ public:
     }
 
 private:
-    ElementID id_;
+    ElementID ID_;
     std::unique_ptr<IPackageStockpile> d_;
 };
 
-#endif //NODES_PREFERENCES_HPP
+#endif // NETSIM_NODES_HPP
