@@ -4,7 +4,7 @@
 
 ReceiverPreferences::ReceiverPreferences(ProbabilityGenerator pg)
     : pg_(pg) {}
-
+//Dodajemy nowego odbiorcę do mapy
 void ReceiverPreferences::add_receiver(IPackageReceiver* r) {
     preferences_[r] = 1.0;
     // Po dodaniu nowego odbiorcy, resetujemy wagi (1/n)
@@ -13,7 +13,7 @@ void ReceiverPreferences::add_receiver(IPackageReceiver* r) {
         pair.second = new_prob;
     }
 }
-
+//Usuwamy odbiorcę z listy
 void ReceiverPreferences::remove_receiver(IPackageReceiver* r) {
     auto it = preferences_.find(r);
     if (it != preferences_.end()) {
@@ -27,7 +27,7 @@ void ReceiverPreferences::remove_receiver(IPackageReceiver* r) {
         }
     }
 }
-
+//Losujemy liczbę z przedziału ⟨0,1⟩
 IPackageReceiver* ReceiverPreferences::choose_receiver() {
     double probability = pg_();
     double cumulative = 0.0;
@@ -42,11 +42,11 @@ IPackageReceiver* ReceiverPreferences::choose_receiver() {
 }
 
 void PackageSender::send_package() {
-    if (buffer_) {
+    if (buffer_) { //jeżeli bufor nie jest pusty, wybieramy odbiorce
         IPackageReceiver* receiver = receiver_preferences_.choose_receiver();
         if (receiver) {
             receiver->receive_package(std::move(*buffer_));
-            buffer_.reset();
+            buffer_.reset(); //paczka trafia do obdiorcy i znika z bufora
         }
     }
 }
@@ -59,7 +59,7 @@ void Ramp::deliver_goods(Time t) {
     if ((t - 1) % delivery_interval_ == 0) {
         Package p;
         push_package(std::move(p));
-    }
+    }//Tworzym nową paczkę i wkłada ją do bufora
 }
 
 TimeOffset Ramp::get_delivery_interval() const {
@@ -79,7 +79,7 @@ void Worker::do_work(Time t) {
         start_processing_time_ = t;
     }
 
-    if (processing_buffer_) {
+    if (processing_buffer_) { //Sprawdzamy, czy minął czas przetwarzania
         if (t - start_processing_time_ + 1 >= processing_duration_) {
             push_package(std::move(*processing_buffer_));
             processing_buffer_.reset();
@@ -89,11 +89,11 @@ void Worker::do_work(Time t) {
 
 void Worker::receive_package(Package&& p) {
     package_queue_->push(std::move(p));
-}
+} //paczka trafia do kolejki workera
 
 Storehouse::Storehouse(ElementID ID, std::unique_ptr<IPackageStockpile> d)
     : ID_(ID), d_(std::move(d)) {}
 
 void Storehouse::receive_package(Package&& package) {
     d_->push(std::move(package));
-}
+} //Paczka trafia do magazynu i tam zostaje

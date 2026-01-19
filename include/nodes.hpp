@@ -15,24 +15,25 @@ enum class ReceiverType {
     STOREHOUSE
 };
 
-class IPackageReceiver {
+class IPackageReceiver {//klasa bazowa dla każdego, kto może odbierać paczki
 public:
-    virtual IPackageStockpile::const_iterator cbegin() const = 0;
+    virtual IPackageStockpile::const_iterator cbegin() const = 0; //Pozwalają przeglądać zawartość magazynu/kolejki, bez modyfikacji
     virtual IPackageStockpile::const_iterator cend() const = 0;
     virtual IPackageStockpile::const_iterator begin() const = 0;
     virtual IPackageStockpile::const_iterator end() const = 0;
 
     virtual void receive_package(Package&& p) = 0;
-    virtual ElementID get_id() const = 0;
+    virtual ElementID get_id() const = 0; //Każdy element sieci ma unikalne ID
 
-    // Metoda niezbędna do weryfikacji spójności sieci (DFS)
+    // Metoda do sprawdzania typu odbiorcy czy to worker czy storehouse
     virtual ReceiverType get_receiver_type() const = 0;
-
+//destruktor
     virtual ~IPackageReceiver() = default;
 };
-
+//Klasa przechowująca listę odbiorców i prawdopodobieństwa wysyłki
 class ReceiverPreferences {
 public:
+    //mapa na prawdopodobienstwa i odbiorcow
     using preferences_t = std::map<IPackageReceiver*, double>;
     using const_iterator = preferences_t::const_iterator;
 
@@ -40,7 +41,7 @@ public:
     const_iterator end() const { return preferences_.end(); }
     const_iterator cbegin() const { return preferences_.cbegin(); }
     const_iterator cend() const { return preferences_.cend(); }
-
+//Losuje odbiorcę na podstawie prawdopodobieństw.
     explicit ReceiverPreferences(ProbabilityGenerator pg = probability_generator);
     void add_receiver(IPackageReceiver* r);
     void remove_receiver(IPackageReceiver* r);
@@ -51,25 +52,27 @@ private:
     preferences_t preferences_;
     ProbabilityGenerator pg_;
 };
-
+//Klasa bazowa dla Ramp, Worker czyli wysylaczy paczek
 class PackageSender {
 public:
     PackageSender() = default;
     ReceiverPreferences receiver_preferences_;
     PackageSender(PackageSender&&) = default;
+    //Wysyła paczkę z bufora do wybranego odbiorcy.
     void send_package();
     const std::optional<Package>& get_sending_buffer() const { return buffer_; };
 
 protected:
     void push_package(Package&& p) {
         buffer_ = std::move(p);
-    }
+    }//bufor ktory moze przechowywac paczke albo byc pusty
     std::optional<Package> buffer_ = std::nullopt;
 };
 
 class Ramp : public PackageSender {
 public:
     Ramp(ElementID ID, TimeOffset di);
+    //wyysyla paczki
     void deliver_goods(Time t);
     TimeOffset get_delivery_interval() const;
     ElementID get_id() const;
@@ -82,7 +85,7 @@ private:
 class Worker : public PackageSender, public IPackageReceiver {
 public:
     Worker(ElementID ID, TimeOffset pd, std::unique_ptr<IPackageQueue> q);
-
+//przetwarzanie paczki
     void do_work(Time t);
     TimeOffset get_processing_duration() const { return processing_duration_; };
     Time get_package_processing_start_time() const { return start_processing_time_; };
@@ -112,6 +115,7 @@ public:
 private:
     ElementID ID_;
     TimeOffset processing_duration_;
+    //Kolejka paczek oczekujących na przetworzenie (FIFO / LIFO)
     std::unique_ptr<IPackageQueue> package_queue_;
     Time start_processing_time_;
     std::optional<Package> processing_buffer_;
@@ -122,6 +126,7 @@ public:
     Storehouse(ElementID ID, std::unique_ptr<IPackageStockpile> d = std::make_unique<PackageQueue>(PackageQueueType::FIFO));
 
     ElementID get_id() const override { return ID_; };
+    //paczka trafia do magazynu
     void receive_package(Package&& package) override;
 
     IPackageStockpile::const_iterator cbegin() const override { return d_->cbegin(); }
