@@ -43,10 +43,10 @@ public:
         return std::find_if(collection_.cbegin(), collection_.cend(),
             [ID](const Node& node) {
                 return node.get_id() == ID;
-            });
+            }); //kazdy wezel ma metode get id
     }
 
-    void remove_by_id(ElementID ID) {
+    void remove_by_id(ElementID ID) { //usuwanie obiektow po id
         auto it = find_by_id(ID);
         if (it != collection_.end()) {
             collection_.erase(it);
@@ -59,7 +59,7 @@ private:
 
 class Factory {
 public:
-    // Ramps
+    //dodaje rampę do fabryki
     void add_ramp(Ramp&& ramp);
     void remove_ramp(ElementID ID);
     NodeCollection<Ramp>::iterator find_ramp_by_id(ElementID ID);
@@ -67,7 +67,7 @@ public:
     NodeCollection<Ramp>::const_iterator ramp_cbegin() const;
     NodeCollection<Ramp>::const_iterator ramp_cend() const;
 
-    // Workers
+    // dodaje workera do fabryki
     void add_worker(Worker&& worker);
     void remove_worker(ElementID ID);
     NodeCollection<Worker>::iterator find_worker_by_id(ElementID ID);
@@ -75,7 +75,7 @@ public:
     NodeCollection<Worker>::const_iterator worker_cbegin() const;
     NodeCollection<Worker>::const_iterator worker_cend() const;
 
-    // Storehouses
+    // dodaje magazyn do fabryki
     void add_storehouse(Storehouse&& storehouse);
     void remove_storehouse(ElementID ID);
     NodeCollection<Storehouse>::iterator find_storehouse_by_id(ElementID ID);
